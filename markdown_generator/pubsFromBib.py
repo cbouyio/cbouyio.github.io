@@ -64,9 +64,9 @@ for pubsource in publist:
         pub_year = "1900"
         pub_month = "01"
         pub_day = "01"
-        
+
         b = bibdata.entries[bib_id].fields
-        
+
         try:
             pub_year = f'{b["year"]}'
 
@@ -83,24 +83,24 @@ for pubsource in publist:
             if "day" in b.keys(): 
                 pub_day = str(b["day"])
 
-                
-            pub_date = pub_year+"-"+pub_month+"-"+pub_day
-            
+
+            pub_date = f"{pub_year}-{pub_month}-{pub_day}"
+
             #strip out {} as needed (some bibtex entries that maintain formatting)
             clean_title = b["title"].replace("{", "").replace("}","").replace("\\","").replace(" ","-")    
 
             url_slug = re.sub("\\[.*\\]|[^a-zA-Z0-9_-]", "", clean_title)
             url_slug = url_slug.replace("--","-")
 
-            md_filename = (str(pub_date) + "-" + url_slug + ".md").replace("--","-")
-            html_filename = (str(pub_date) + "-" + url_slug).replace("--","-")
+            md_filename = f"{str(pub_date)}-{url_slug}.md".replace("--", "-")
+            html_filename = f"{str(pub_date)}-{url_slug}".replace("--", "-")
 
             #Build Citation from text
             citation = ""
 
             #citation authors - todo - add highlighting for primary author?
             for author in bibdata.entries[bib_id].persons["author"]:
-                citation = citation+" "+author.first_names[0]+" "+author.last_names[0]+", "
+                citation = f"{citation} {author.first_names[0]} {author.last_names[0]}, "
 
             #citation title
             citation = citation + "\"" + html_escape(b["title"].replace("{", "").replace("}","").replace("\\","")) + ".\""
@@ -108,17 +108,17 @@ for pubsource in publist:
             #add venue logic depending on citation type
             venue = publist[pubsource]["venue-pretext"]+b[publist[pubsource]["venuekey"]].replace("{", "").replace("}","").replace("\\","")
 
-            citation = citation + " " + html_escape(venue)
-            citation = citation + ", " + pub_year + "."
+            citation = f"{citation} {html_escape(venue)}"
+            citation = f"{citation}, {pub_year}."
 
-            
+
             ## YAML variables
             md = "---\ntitle: \""   + html_escape(b["title"].replace("{", "").replace("}","").replace("\\","")) + '"\n'
-            
+
             md += """collection: """ +  publist[pubsource]["collection"]["name"]
 
             md += """\npermalink: """ + publist[pubsource]["collection"]["permalink"]  + html_filename
-            
+
             note = False
             if "note" in b.keys():
                 if len(str(b["note"])) > 5:
@@ -128,7 +128,7 @@ for pubsource in publist:
             md += "\ndate: " + str(pub_date) 
 
             md += "\nvenue: '" + html_escape(venue) + "'"
-            
+
             url = False
             if "url" in b.keys():
                 if len(str(b["url"])) > 5:
@@ -139,7 +139,7 @@ for pubsource in publist:
 
             md += "\n---"
 
-            
+
             ## Markdown description for individual page
             if note:
                 md += "\n" + html_escape(b["note"]) + "\n"
@@ -151,10 +151,9 @@ for pubsource in publist:
 
             md_filename = os.path.basename(md_filename)
 
-            with open("../_publications/" + md_filename, 'w') as f:
+            with open(f"../_publications/{md_filename}", 'w') as f:
                 f.write(md)
             print(f'SUCESSFULLY PARSED {bib_id}: \"', b["title"][:60],"..."*(len(b['title'])>60),"\"")
-        # field may not exist for a reference
         except KeyError as e:
             print(f'WARNING Missing Expected Field {e} from entry {bib_id}: \"', b["title"][:30],"..."*(len(b['title'])>30),"\"")
             continue
